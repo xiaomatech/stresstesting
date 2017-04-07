@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/local/tsung/share/tsung/tsung-1.0.dtd">
+<tsung loglevel="warning" version="1.0">
+
+    # 加压客户端设置
+    <!-- Client side setup -->
+    <clients>
+        <client host="TsungSalve1"  maxusers="60000" cpu="40" >
+            <ip value="10.30.0.15"></ip>
+        </client>
+        <client host="TsungSalve2"  maxusers="60000" cpu="40" >
+            <ip value="10.30.0.16"></ip>
+        </client>
+        ....
+    </clients>
+
+    <!-- Server side setup -->
+    # 打压力给谁
+    <servers>
+        <server host="10.30.0.2" port="8091" type="tcp"></server>
+        <server host="10.30.0.3" port="8091" type="tcp"></server>
+    </servers>
+
+    <!-- to start os monitoring (cpu, network, memory). Use an erlang
+     agent on the remote machine or SNMP. erlang is the default -->
+    # tsung 提供的内部监控
+    <monitoring>
+        <monitor host="TsungSalve1" type="erlang"></monitor>
+        <monitor host="TsungSalve2" type="erlang"></monitor>
+    </monitoring>
+
+    # 压力方法
+    <load>
+        <!-- several arrival phases can be set: for each phase, you can set
+        the mean inter-arrival time between new clients and the phase
+        duration -->
+        <arrivalphase phase="1" duration="10" unit="minute">
+            <users maxnumber="300000" arrivalrate="10000" unit="second"></users>
+        </arrivalphase>
+    </load>
+
+    # 用户连接模拟客户端情况
+    <options>
+        <option type="ts_http" name="user_agent">
+            <user_agent probability="80">Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.8) Gecko/20050513 Galeon/1.3.21</user_agent>
+            <user_agent probability="20">Mozilla/5.0 (Windows; U; Windows NT 5.2; fr-FR; rv:1.7.8) Gecko/20050511 Firefox/1.0.4</user_agent>
+        </option>
+    </options>
+
+    # 每个用户session情况
+    <sessions>
+        <session name="test" probability="100" type="ts_http">
+            <!-- full url with server name, this overrides the "server" config value -->
+            <for from="1" to="2000000" var="i">
+                <request>
+                    <http url="/api/v1/events?cid=1" method="GET" version="1.1">
+                        <http_header name="Cache-Control" value="no-cache"/>
+                    </http>
+                </request>
+
+                <thinktime value="1" random="true"></thinktime>
+            </for>
+        </session>
+    </sessions>
+</tsung>
